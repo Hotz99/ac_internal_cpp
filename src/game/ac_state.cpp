@@ -21,40 +21,32 @@ AcState::AcState() {
     }
 }
 
-// TODO should we set members to `nullptr` ?
-AcState::~AcState() {}
-
-AcState& AcState::GetInstance() {
-    static AcState instance;
-    return instance;
-}
-
 void AcState::Initialize() {
     AcState::ScanForSignatures();
 }
 
 bool AcState::ScanForSignatures() {
-    Signature signatures[] = {
+    Signature_t signatures[] = {
         // sigNoRecoil
-        Signature { "83 EC ? 53 55 8B 6C ? ? 56 57 8B F9" },
+        Signature_t { "83 EC ? 53 55 8B 6C ? ? 56 57 8B F9" },
         // sigDecreaseAmmo
-        Signature { "FF 08 8D 44" },
+        Signature_t { "FF 08 8D 44" },
         // sigDecreaseHealth
-        Signature { "2B F1 29 73", 2 },
+        Signature_t { "2B F1 29 73", 2 },
         // sigIntersectClosest
-        Signature { "83 EC ? A1 ? ? ? ? ? ? ? ? 24" },
+        Signature_t { "83 EC ? A1 ? ? ? ? ? ? ? ? 24" },
         // sigIntersectGeometry
-        Signature { "55 8B EC 83 E4 ? 81 EC ? ? ? ? 53 8B DA 8B D1" },
+        Signature_t { "55 8B EC 83 E4 ? 81 EC ? ? ? ? 53 8B DA 8B D1" },
         // sigGameMode
-        Signature { "89 15 ? ? ? ? 53", 2 },
+        Signature_t { "89 15 ? ? ? ? 53", 2 },
         // sigMatrix
-        Signature { "F3 0F ? ? ? ? ? ? F3 0F ? ? 0F 28 ? 0F C6 C3 ? F3 0F ? ? ? ? ? ? F3 0F ? ? F3 0F ? ? F2 0F ? ? ? ? ? ? 0F 28 ? 0F 54 ? ? ? ? ? 0F 5A ? 66 0F ? ? 77 ? F3 0F", 4 },
+        Signature_t { "F3 0F ? ? ? ? ? ? F3 0F ? ? 0F 28 ? 0F C6 C3 ? F3 0F ? ? ? ? ? ? F3 0F ? ? F3 0F ? ? F2 0F ? ? ? ? ? ? 0F 28 ? 0F 54 ? ? ? ? ? 0F 5A ? 66 0F ? ? 77 ? F3 0F", 4 },
         // sigLocalPlayer
-        Signature { "8B 0D ? ? ? ? 56 57 8B 3D", 2 },
+        Signature_t { "8B 0D ? ? ? ? 56 57 8B 3D", 2 },
         // sigEntityList
-        Signature { "A1 ? ? ? ? ? ? ? ? F6 0F 84 5F", 1 },
+        Signature_t { "A1 ? ? ? ? ? ? ? ? F6 0F 84 5F", 1 },
         // sigPlayerCount
-        Signature { "8B 0D ? ? ? ? 46 3B ? 7C ? 8B 35", 2 },
+        Signature_t { "8B 0D ? ? ? ? 46 3B ? 7C ? 8B 35", 2 },
     };
 
     SignatureScanner* scanner = new SignatureScanner(m_ModuleBaseAddress, m_ModuleSize);
@@ -63,42 +55,73 @@ bool AcState::ScanForSignatures() {
     // when we pass an array to a function, it decays to a pointer
     // hence we can't `sizeof()` the array inside the function to correctly compute the size
     // it will return the size of a pointer
-    int signatureCount = sizeof(signatures) / sizeof(Signature);
+    int signatureCount = sizeof(signatures) / sizeof(Signature_t);
 
     if (!scanner->Scan(signatures, signatureCount)) {
         Logger::Error() << "[ac_state] failed to resolve some signatures" << Logger::Endl;
         return false;
     }
 
-    Logger::Info() << "[ac_state] found NoRecoil signature at 0x" << (void*)signatures[0].address << " ..." << Logger::Endl;
-    NoRecoil = signatures[0].address;
+    Logger::Info() << "[ac_state] found NoRecoilFn signature at 0x" << (void*)signatures[0].address << Logger::Endl;
+    m_NoRecoilFn = signatures[0].address;
 
-    Logger::Info() << "[ac_state] found DecreaseAmmo signature at 0x" << (void*)signatures[1].address << " ..." << Logger::Endl;
-    DecreaseAmmo = signatures[1].address;
+    Logger::Info() << "[ac_state] found DecreaseAmmoFn signature at 0x" << (void*)signatures[1].address << Logger::Endl;
+    m_DecreaseAmmoFn = signatures[1].address;
 
-    Logger::Info() << "[ac_state] found DecreaseHealth signature at 0x" << (void*)signatures[2].address << " ..." << Logger::Endl;
-    DecreaseHealth = signatures[2].address;
+    Logger::Info() << "[ac_state] found DecreaseHealthFn signature at 0x" << (void*)signatures[2].address << Logger::Endl;
+    m_DecreaseHealthFn = signatures[2].address;
 
-    Logger::Info() << "[ac_state] found IntersectClosest signature at 0x" << (void*)signatures[3].address << " ..." << Logger::Endl;
-    IntersectClosest = signatures[3].address;
+    Logger::Info() << "[ac_state] found IntersectClosestFn signature at 0x" << (void*)signatures[3].address << Logger::Endl;
+    m_IntersectClosestFn = signatures[3].address;
 
-    Logger::Info() << "[ac_state] found IntersectGeometry signature at 0x" << (void*)signatures[4].address << " ..." << Logger::Endl;
-    IntersectGeometry = signatures[4].address;
+    Logger::Info() << "[ac_state] found IntersectGeometryFn signature at 0x" << (void*)signatures[4].address << Logger::Endl;
+    m_IntersectGeometryFn = signatures[4].address;
 
-    Logger::Info() << "[ac_state] found GameMode signature at 0x" << (void*)signatures[5].address << " ..." << Logger::Endl;
-    // TODO employ `reinterpret_cast` instead of C-style casts
-    GameMode = (int*)(*(uintptr_t*)signatures[5].address);
+    Logger::Info() << "[ac_state] found GameModeFn signature at 0x" << (void*)signatures[5].address << Logger::Endl;
+    // TODO employ `reinterpret_cast` instead of C-style casts ?
+    m_GameModePtr = (int*)(*(uintptr_t*)signatures[5].address);
 
-    Logger::Info() << "[ac_state] found Matrix signature at 0x" << (void*)signatures[6].address << " ..." << Logger::Endl;
-    Matrix = (float*)(*(uintptr_t*)signatures[6].address);
+    Logger::Info() << "[ac_state] found ViewMatrixFn signature at 0x" << (void*)signatures[6].address << Logger::Endl;
+    m_ViewMatrixPtr = (float*)(*(uintptr_t*)signatures[6].address);
 
-    Logger::Info() << "[ac_state] found LocalPlayer signature at 0x" << (void*)signatures[7].address << " ..." << Logger::Endl;
-    LocalPlayer = *(AcEntity**)(*(uintptr_t*)signatures[7].address);
+    Logger::Info() << "[ac_state] found LocalPlayerPtr signature at 0x" << (void*)signatures[7].address << Logger::Endl;
+    m_LocalPlayerPtr = *(AcEntity**)(*(uintptr_t*)signatures[7].address);
 
-    Logger::Info() << "[ac_state] found EntityList signature at 0x" << (void*)signatures[8].address << " ..." << Logger::Endl;
-    EntityList = *(AcEntityList**)(*(uintptr_t*)signatures[8].address);
+    Logger::Info() << "[ac_state] found EntityListPtr signature at 0x" << (void*)signatures[8].address << Logger::Endl;
+    m_EntityListPtr = *(AcEntityList**)(*(uintptr_t*)signatures[8].address);
 
-    Logger::Info() << "[ac_state] found PlayerCount signature at 0x" << (void*)signatures[9].address << " ..." << Logger::Endl;
-    PlayerCount = (int*)(*(uintptr_t*)signatures[9].address);
+    Logger::Info() << "[ac_state] found PlayerCountPtr signature at 0x" << (void*)signatures[9].address << Logger::Endl;
+    m_PlayerCountPtr = (int*)(*(uintptr_t*)signatures[9].address);
     return true;
+}
+
+void AcState::Destroy() {
+	// calls destructor
+    delete this;
+    Logger::Debug() << "[ac_state] destroyed" << Logger::Endl;
+}
+
+AcState::~AcState() {
+	m_ModuleBaseAddress = NULL;
+    m_ModuleSize = 0;
+
+    m_NoRecoilFn = NULL;
+    m_DecreaseAmmoFn = NULL;
+    m_DecreaseHealthFn = NULL;
+    m_IntersectClosestFn = NULL;
+    m_IntersectGeometryFn = NULL;
+}
+
+bool AcState::IsTeamGame() {
+    return *m_GameModePtr == 0 || *m_GameModePtr == 4 || *m_GameModePtr == 5 || *m_GameModePtr == 7
+        || *m_GameModePtr == 11 || *m_GameModePtr == 13 || *m_GameModePtr == 14 || *m_GameModePtr == 16
+        || *m_GameModePtr == 17 || *m_GameModePtr == 20 || *m_GameModePtr == 21;
+}
+
+bool AcState::IsEnemy(AcEntity* entity) {
+    return !IsTeamGame() || entity->Team != m_LocalPlayerPtr->Team;
+}
+
+bool AcState::IsValidEntity(AcEntity* entity) {
+    return entity && entity->Health > 0;
 }

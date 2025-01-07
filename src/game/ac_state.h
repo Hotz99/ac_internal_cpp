@@ -10,14 +10,6 @@
 
 class AcState {
 private:
-    // ctors and dtors must have implementation, otherwise linker error
-    AcState();
-    ~AcState();
-
-    bool CheckReady();
-    void LoadModules();
-    bool ScanForSignatures();
-
     // `std::nullptr_t` is a type in C++ that represents a null pointer, not a number
     // `uintptr_t` is an integer type meant to hold pointer values
     // `NULL` is a macro that expands to `0` or `nullptr`
@@ -25,29 +17,38 @@ private:
     uintptr_t m_ModuleBaseAddress = NULL;
     int m_ModuleSize = 0;
 public:
-    static AcState& GetInstance();
-    void Initialize();
-    static void Reload();
-    static void Destroy();
+    // ctors and dtors must have implementation, otherwise linker error
+    AcState();
+    ~AcState();
 
-    bool IsReady();
+    static AcState& GetInstance() {
+        // `static` ensures the instance lifetime is the same as the program
+        static AcState instance;
+        return instance;
+    }
+
+    void Initialize();
+
+    bool ScanForSignatures();
+
+    void Destroy();
 
     bool IsTeamGame();
     bool IsEnemy(AcEntity* entity);
     bool IsValidEntity(AcEntity* entity);
 
-    uintptr_t ModuleBase = NULL;
+    // TODO are these fn pointers ?
+    uintptr_t m_NoRecoilFn = NULL;
+    uintptr_t m_DecreaseAmmoFn = NULL;
+    uintptr_t m_DecreaseHealthFn = NULL;
+    uintptr_t m_IntersectClosestFn = NULL;
+    uintptr_t m_IntersectGeometryFn = NULL;
 
-    uintptr_t NoRecoil = NULL;
-    uintptr_t DecreaseAmmo = NULL;
-    uintptr_t DecreaseHealth = NULL;
-    uintptr_t IntersectClosest = NULL;
-    uintptr_t IntersectGeometry = NULL;
-
-    int* GameMode = nullptr;
-    int* PlayerCount = nullptr;
-    float* Matrix = nullptr;
-    AcEntity* LocalPlayer = nullptr;
-    AcEntityList* EntityList = nullptr;
+    int* m_GameModePtr = nullptr;
+    int* m_PlayerCountPtr = nullptr;
+    // `ViewMatrix` is a 4x4 array of floats, below is a reference to the first element 
+    float* m_ViewMatrixPtr = nullptr;
+    AcEntity* m_LocalPlayerPtr = nullptr;
+    AcEntityList* m_EntityListPtr = nullptr;
 };
 
