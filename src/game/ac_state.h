@@ -37,12 +37,11 @@ public:
     bool IsEnemy(AcEntity* entity);
     bool IsValidEntity(AcEntity* entity);
 
-    // TODO are these fn pointers ?
-    uintptr_t m_NoRecoilFn = NULL;
-    uintptr_t m_DecreaseAmmoFn = NULL;
-    uintptr_t m_DecreaseHealthFn = NULL;
-    uintptr_t m_IntersectClosestFn = NULL;
-    uintptr_t m_IntersectGeometryFn = NULL;
+    uintptr_t m_NoRecoilFnPtr = NULL;
+    uintptr_t m_DecreaseAmmoFnPtr = NULL;
+    uintptr_t m_DecreaseHealthFnPtr = NULL;
+    uintptr_t m_IntersectClosestFnPtr = NULL;
+    uintptr_t m_IntersectGeometryFnPtr = NULL;
 
     int* m_GameModePtr = nullptr;
     int* m_PlayerCountPtr = nullptr;

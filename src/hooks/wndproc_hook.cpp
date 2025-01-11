@@ -99,8 +99,7 @@ void WndProcHook::Initialize() {
 void WndProcHook::Shutdown() {
     if (g_WndProc) {
         SetWindowLongPtr(m_WindowPtr, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(g_WndProc));
+        ImGui_ImplWin32_Shutdown();
+        ImGui_ImplOpenGL3_Shutdown();
     }
-
-    ImGui_ImplWin32_Shutdown();
-    ImGui_ImplOpenGL3_Shutdown();
 }

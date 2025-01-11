@@ -1,5 +1,5 @@
 #define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
+#include <windows.h>
 #include <thread>
 #include <vector>
 
@@ -9,7 +9,10 @@
 #include "../libs/imgui/imgui_impl_opengl3.h"
 #include "./hooks/wndproc_hook.h"
 #include "./menu/menu.h"
+#include "./hacks/esp.h"
+#include "./hacks/aimbot.h"
 #include "./logger/logger.h"
+#include "./game/ac_state.h"
 
 bool bDestroy = false;
 
@@ -40,11 +43,19 @@ BOOL __stdcall wglSwapBuffersHookPayload(HDC hDeviceContext)
 
         Menu::GetInstance().Render();
 
+        // TODO draw onto imgui overlay instead of using opengl ?
+        opengl::SetupOrtho();
+        ESP::GetInstance().Render();
+        opengl::RestoreGL();
+
+        Aimbot::GetInstance().Work();
+        Godmode::GetInstance().Work();
+
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
 
-    // trampoline to the original function
+    // call trampoline to the original function
     return wglSwapBuffersTrampoline(hDeviceContext);
 }
 
@@ -52,12 +63,15 @@ DWORD __stdcall WorkerLogic(HMODULE hModule)
 {
     Logger::SetActive(true);
 
+    AcState::GetInstance().Initialize();
+
     // hook target process's `wndProc` to intercept Windows messages
     // creates imgui context and initializes imgui impl win32 and opengl3
     WndProcHook::GetInstance().Initialize();
 
-    HMODULE hOpenGl = NULL;
+    HMODULE hOpenGl = nullptr;
 
+    // wait for `opengl32.dll` to be loaded by target process
     while (!hOpenGl)
     {
 		hOpenGl = GetModuleHandle("opengl32.dll");
@@ -79,7 +93,11 @@ DWORD __stdcall WorkerLogic(HMODULE hModule)
     // 2. hook payload executes then jmp to trampoline function
     // 3. trampoline function executes copied original function's instructions (stolen bytes), maintaining original flow
     // 4. trampoline function jmp to original function, to byte after jmp to hook payload
-    auto createHookStatus = MH_CreateHook(wglSwapBuffers, wglSwapBuffersHookPayload, reinterpret_cast<void**>(&wglSwapBuffersTrampoline));
+
+    // the third arg is a pointer to trampoline function pointer
+    // `&` yields the address of the function pointer, resulting in a `void**`
+    // then cast to `LPVOID*` (Windows typedef for `void*`) as required by `MH_CreateHook()`
+    auto createHookStatus = MH_CreateHook(wglSwapBuffers, wglSwapBuffersHookPayload, reinterpret_cast<LPVOID*>(&wglSwapBuffersTrampoline));
     
     if (createHookStatus != MH_OK)
     {

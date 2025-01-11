@@ -1,8 +1,12 @@
 #pragma once
-#include "../logger/logger.h"
 #include <vector>
+
+#include "../logger/logger.h"
 #include "../../libs/imgui/imgui.h"
 #include "../sdl/sdl.h"
+#include "../hacks/settings.h"
+#include "../game/ac_state.h"
+#include "../hacks/godmode.h"
 
 class Menu {
 private:

@@ -16,12 +16,12 @@ std::ostream& Logger::Print(LogLevel level) {
     return Logger::NullStream;
 }
 
-//void Logger::Bytes(byte* bytes, unsigned int length) {
-//    for (unsigned int i = 0; i < length; i++) {
-//        std::cout << hex_format(bytes[i]) << " ";
-//    }
-//    std::cout << " ..." << std::endl;
-//};
+void Logger::Bytes(byte* bytes, int length) {
+    for (int i = 0; i < length; i++) {
+        std::cout << hex_format(bytes[i]) << " ";
+    }
+    std::cout << std::endl;
+};
 
 std::ostream& Logger::Endl(std::ostream& ostream) {
     return std::endl(ostream);

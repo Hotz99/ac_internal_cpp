@@ -7,35 +7,35 @@ class Hack {
 protected:
     void CallActiveChangedCallback() {
         if (m_Callback) {
-            m_Callback(m_IsActive);
+            m_Callback(m_IsEnabled);
         }
     };
 
     ActiveChangedCallback m_Callback;
     AcState* m_AcState;
-    bool m_IsActive;
+    bool m_IsEnabled;
 
 public:
     Hack() : Hack(false, nullptr) {};
     Hack(bool isActive, ActiveChangedCallback callback) {
-        m_IsActive = isActive;
+        m_IsEnabled = isActive;
         m_Callback = callback;
         m_AcState = &AcState::GetInstance();
     };
     ~Hack() {
-        Deactivate();
+        Disable();
         m_AcState = nullptr;
     };
-    virtual void Activate() {
-        m_IsActive = true;
+    virtual void Enable() {
+        m_IsEnabled = true;
         CallActiveChangedCallback();
     };
-    virtual void Deactivate() {
-        m_IsActive = false;
+    virtual void Disable() {
+        m_IsEnabled = false;
         CallActiveChangedCallback();
     };
     bool IsActive() {
-        return m_IsActive;
+        return m_IsEnabled;
     };
     virtual void Tick() {};
 };

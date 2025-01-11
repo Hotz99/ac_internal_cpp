@@ -63,19 +63,19 @@ bool AcState::ScanForSignatures() {
     }
 
     Logger::Info() << "[ac_state] found NoRecoilFn signature at 0x" << (void*)signatures[0].address << Logger::Endl;
-    m_NoRecoilFn = signatures[0].address;
+    m_NoRecoilFnPtr = signatures[0].address;
 
     Logger::Info() << "[ac_state] found DecreaseAmmoFn signature at 0x" << (void*)signatures[1].address << Logger::Endl;
-    m_DecreaseAmmoFn = signatures[1].address;
+    m_DecreaseAmmoFnPtr = signatures[1].address;
 
     Logger::Info() << "[ac_state] found DecreaseHealthFn signature at 0x" << (void*)signatures[2].address << Logger::Endl;
-    m_DecreaseHealthFn = signatures[2].address;
+    m_DecreaseHealthFnPtr = signatures[2].address;
 
     Logger::Info() << "[ac_state] found IntersectClosestFn signature at 0x" << (void*)signatures[3].address << Logger::Endl;
-    m_IntersectClosestFn = signatures[3].address;
+    m_IntersectClosestFnPtr = signatures[3].address;
 
     Logger::Info() << "[ac_state] found IntersectGeometryFn signature at 0x" << (void*)signatures[4].address << Logger::Endl;
-    m_IntersectGeometryFn = signatures[4].address;
+    m_IntersectGeometryFnPtr = signatures[4].address;
 
     Logger::Info() << "[ac_state] found GameModeFn signature at 0x" << (void*)signatures[5].address << Logger::Endl;
     // TODO employ `reinterpret_cast` instead of C-style casts ?
@@ -105,11 +105,11 @@ AcState::~AcState() {
 	m_ModuleBaseAddress = NULL;
     m_ModuleSize = 0;
 
-    m_NoRecoilFn = NULL;
-    m_DecreaseAmmoFn = NULL;
-    m_DecreaseHealthFn = NULL;
-    m_IntersectClosestFn = NULL;
-    m_IntersectGeometryFn = NULL;
+    m_NoRecoilFnPtr = NULL;
+    m_DecreaseAmmoFnPtr = NULL;
+    m_DecreaseHealthFnPtr = NULL;
+    m_IntersectClosestFnPtr = NULL;
+    m_IntersectGeometryFnPtr = NULL;
 }
 
 bool AcState::IsTeamGame() {

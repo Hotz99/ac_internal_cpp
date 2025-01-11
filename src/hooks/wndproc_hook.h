@@ -1,5 +1,5 @@
 #pragma once
-#include <Windows.h>
+#include <windows.h>
 #include "../../libs/imgui/imgui.h"
 #include "../../libs/imgui/imgui_impl_win32.h"
 #include "../../libs/imgui/imgui_impl_opengl3.h"
@@ -16,7 +16,7 @@ public:
         return inst;
     }
 
-    auto GetWindow() const { return m_WindowPtr; }
+    HWND GetWindow() const { return m_WindowPtr; }
 
     void Initialize();
     void Shutdown();

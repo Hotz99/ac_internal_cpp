@@ -1,7 +1,6 @@
 #pragma once
-#include "hack.h"
-#include "../game/ac_state.h"
 #include "./settings.h"
+#include "../game/ac_state.h"
 #include "../opengl/opengl.h"
 
 #define BOX_LINE_WIDTH 2.0f
@@ -9,7 +8,7 @@
 #define FONT_WIDTH 9
 
 struct Viewport {
-    int x, y, width, height = 0;
+    int x, y, width, height;
 };
 
 class ESP {

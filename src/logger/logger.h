@@ -1,5 +1,5 @@
 #pragma once
-#include <Windows.h>
+#include <windows.h>
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -27,6 +27,8 @@ enum LogLevel {
     LOG_ERROR
 };
 
+typedef unsigned char byte;
+
 class Logger {
 public:
     static std::ostream& Print(LogLevel level);
@@ -37,8 +39,7 @@ public:
 
     static std::ostream& Endl(std::ostream& ostream);
 
-    // TODO fix byte definition import
-    //static void Bytes(byte* bytes, unsigned int length);
+    static void Bytes(byte* bytes, int length);
 
     static void SetActive(bool active);
     static void Destroy();

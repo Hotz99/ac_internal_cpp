@@ -1,50 +1,77 @@
-#include "health.h"
+#include "./godmode.h"
 
-// Original instructions of DoDamage()
+// `dodamage()` original instructions:
 // .text:0041C223 sub[ebx + 4], esi		- 29 73 04 
 // .text:0041C226 mov     eax, esi		- 8B C6
 
-DWORD LocalPlayerState;
-DWORD JmpBackHealthHook = NULL;
 
-void _declspec(naked) HealthHook() {
+DWORD localPlayerState;
+DWORD returnAddr;
+
+void _declspec(naked) DecreaseHealthHookPayload() {
     __asm {
-        cmp ebx, [LocalPlayerState];    // compare current this-pointer with LocalPlayerState
-        jne is_bot;                     // if not equal: jump over the next instruction
-        mov esi, 0;                     // else set damage (esi) to 0
+        cmp ebx, [localPlayerState];    // `ebx` contains `this` pointer
+        jne is_bot;                     // jump if above `cmp` is false
+        mov esi, 0;                     // else set `esi` (register containing damage value) to 0
     is_bot:
-        sub[ebx + 4], esi;              // execute the stolen bytes
+        sub[ebx + 4], esi;              // execute original instructions
         mov eax, esi;
-        jmp JmpBackHealthHook;          // jump back to original function
+        jmp returnAddr;                 // jump back to original function
     }
 }
 
-Health::Health() : Hack() {
-    m_DoDamageHook = new memory::Hook(m_AcState->DecreaseHealth, (addr)HealthHook, 5);
-    JmpBackHealthHook = m_AcState->DecreaseHealth + 5;
-}
+Godmode::Godmode() {
+    m_AcState = &AcState::GetInstance();
 
-Health::~Health() {
-    this->Deactivate();
-}
+    // first 5 bytes of `dodamage()` function are overwritten by our hook
+    // jump back to original function after executing our hook, avoiding infinite loop
+    returnAddr = (m_AcState->m_DecreaseHealthFnPtr + 5);
 
-void Health::Activate() {
-    if (this->IsActive()) {
-        return;
+    if (MH_CreateHook(reinterpret_cast<LPVOID>(m_AcState->m_DecreaseHealthFnPtr), DecreaseHealthHookPayload, NULL) != MH_OK) {
+		Logger::Error() << "[godmode] failed to create dodamage() hook" << Logger::Endl;
+		return;
     }
-    m_IsActive = m_DoDamageHook->Activate();
+    else {
+		Logger::Info() << "[godmode] created dodamage() hook" << Logger::Endl;
+	}
 }
 
-void Health::Deactivate() {
-    if (!this->IsActive()) {
-        return;
-    }
-    m_IsActive = !m_DoDamageHook->Deactivate();
+Godmode::~Godmode() {
+    MH_RemoveHook(reinterpret_cast<LPVOID>(m_AcState->m_DecreaseHealthFnPtr));
 }
 
-void Health::Tick() {
-    if (!this->m_AcState->IsReady()) {
-        return;
+void Godmode::Work() {
+    if (g_Settings.m_EnableGodmode) {
+        if (!m_IsEnabled)
+            Enable();
+    } else {
+		if (m_IsEnabled)
+			Disable();
     }
-    LocalPlayerState = ((ulong)&this->m_AcState->LocalPlayer->Health) - 4;
+}
+
+void Godmode::Enable() {
+    localPlayerState = reinterpret_cast<DWORD>(&m_AcState->m_LocalPlayerPtr->EntityState);
+
+    if (MH_EnableHook(reinterpret_cast<LPVOID>(m_AcState->m_DecreaseHealthFnPtr)) != MH_OK) {
+		Logger::Error() << "[godmode] failed to enable dodamage() hook" << Logger::Endl;
+		return;
+    }
+    else {
+        Logger::Info() << "[godmode] enabled dodamage() hook" << Logger::Endl;
+    }
+
+    m_IsEnabled = true;
+}
+
+void Godmode::Disable() {
+    if (MH_DisableHook(reinterpret_cast<LPVOID>(m_AcState->m_DecreaseHealthFnPtr)) != MH_OK) {
+		Logger::Error() << "[godmode] failed to disable dodamage() hook" << Logger::Endl;
+		return;
+    }
+    else {
+		Logger::Info() << "[godmode] disabled dodamage() hook" << Logger::Endl;
+	}
+
+	m_IsEnabled = false;
 }

@@ -169,7 +169,7 @@ namespace ac_structs {
         class AcAnimateState CurrentAnimation[2]; //0x00AC
         int32_t LastAnimationSwitchTime[2]; //0x00D4
         int32_t LastModel[2]; //0x00DC
-        int32_t LastRendered; //0x00E4
+        int32_t EntityState; //0x00E4
         int32_t Health; //0x00E8
         int32_t Armour; //0x00EC
         int32_t Primary; //0x00F0

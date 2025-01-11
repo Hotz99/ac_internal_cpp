@@ -6,7 +6,7 @@
 //    Signature(pattern, 0);
 //}
 
-Signature::Signature(const char* pattern, int addressByteOffset) {
+Signature_t::Signature_t(const char* pattern, int addressByteOffset) {
     this->pattern = pattern;
     this->addressByteOffset = addressByteOffset;
 
@@ -28,13 +28,13 @@ Signature::Signature(const char* pattern, int addressByteOffset) {
     }
 }
 
-void Signature::AddByte(int byte, char mask) {
+void Signature_t::AddByte(int byte, char mask) {
     bytes[length] = byte;
     byteMask[length] = mask;
     length++;
 }
 
-int Signature::Decode(const char* byteCharPair) {
+int Signature_t::Decode(const char* byteCharPair) {
     int out, i, t, hn, ln;
     for (t = 0, i = 0; i < 2; i += 2, ++t) {
         hn = byteCharPair[i] > '9' ? byteCharPair[i] - 'A' + 10 : byteCharPair[i] - '0';
@@ -50,7 +50,7 @@ SignatureScanner::SignatureScanner(uintptr_t moduleBaseAddress, int moduleSize) 
 }
 
 
-bool SignatureScanner::Scan(Signature signatures[], int signatureCount) {
+bool SignatureScanner::Scan(Signature_t signatures[], int signatureCount) {
     int foundCount = 0;
     
     for (int memIdx = 0; memIdx < m_ModuleSize; memIdx++) {
@@ -66,7 +66,7 @@ bool SignatureScanner::Scan(Signature signatures[], int signatureCount) {
     return foundCount == signatureCount;
 }
 
-bool SignatureScanner::CheckSignature(uintptr_t address, Signature* signature) {
+bool SignatureScanner::CheckSignature(uintptr_t address, Signature_t* signature) {
     for (int signatureIndex = 0; signatureIndex < signature->length; signatureIndex++) {
         if (signature->byteMask[signatureIndex] == '?') {
             continue;
