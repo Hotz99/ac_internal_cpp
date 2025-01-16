@@ -17,10 +17,8 @@ void Menu::Toggle(bool state) {
 }
 
 void Menu::Render() {
-    if (ImGui::IsKeyPressed(ImGuiKey_Insert, false)) {
-        Logger::Debug() << "[menu] menu key pressed" << Logger::Endl;
+    if (ImGui::IsKeyPressed(ImGuiKey_Insert, false))
         Toggle(!m_IsOpen);
-    }
 
     if (!m_IsOpen) {
         return;

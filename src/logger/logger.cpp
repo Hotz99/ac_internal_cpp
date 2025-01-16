@@ -92,7 +92,7 @@ std::string Logger::GetTimestamp() {
     std::time_t now = std::time(nullptr);
     localtime_s(&locale_now, &now);
 
-    strftime(buffer, 20, "%Y-%m-%d %H:%M:%S", &locale_now);
+    strftime(buffer, 20, "%H:%M:%S", &locale_now);
     return std::string(buffer);
 }
 

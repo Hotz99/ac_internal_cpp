@@ -1,5 +1,9 @@
 # Internal Mod Menu for Assault Cube v1.3.0.2
 
+<p align="center">
+  <img src="showcase.png" alt="showcase" width="400"/>
+</p>
+
 ## What ?
 A showcase of memory manipulation and graphical overlay rendering techniques by means of function hooking, applied to an executing target process. It includes features such as:
 - **ESP**: Player model bounding boxes, health bars, names and snaplines.
