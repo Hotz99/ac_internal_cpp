@@ -61,6 +61,10 @@ Logger::~Logger() {
     delete Logger::ConsoleStream;
 }
 
+void Logger::Shutdown() {
+    delete Logger::Instance;
+}
+
 void Logger::AllocateConsole() {
     if (Logger::ConsoleStream) {
         return;
