@@ -1,19 +1,21 @@
 #include "./aimbot.h"
 
+// we cannot initialize a static member variable in the ctor because static members belong to the class
+// not to any particular instance of the class
+//AcState& Aimbot::m_AcState = AcState::GetInstance();
+
 void Aimbot::Work() {
 	if (!g_Settings.m_EnableAimbot || !(GetAsyncKeyState(VK_RBUTTON) & 0x8000))
 		return;
 
 	AcEntity* target = GetNextTarget();
-    if (target) {
-        Logger::Debug() << "[aimbot] aiming at " << target->Name << Logger::Endl;
+    if (target)
         AimAtEntity(target);
-    }
 }
 
 AcEntity* Aimbot::GetNextTarget() {
-    if (!m_AcState->m_EntityListPtr || !m_AcState->m_EntityListPtr->Entities) {
-        Logger::Warning() << "[aimbot] \"m_AcState->EntityList\" is unavailable" << Logger::Endl;
+    if (!m_AcState.m_EntityListPtr || !m_AcState.m_EntityListPtr->Entities) {
+        Logger::Warning() << "[aimbot] \"m_AcState.EntityList\" is unavailable" << Logger::Endl;
         return nullptr;
     }
 
@@ -23,15 +25,15 @@ AcEntity* Aimbot::GetNextTarget() {
     float shortestDistance = 0;
     float distance = 0;
 
-    for (int i = 0; i < *m_AcState->m_PlayerCountPtr; i++) {
-        if (!m_AcState->IsValidEntity(m_AcState->m_EntityListPtr->Entities[i]))
+    for (int i = 0; i < *m_AcState.m_PlayerCountPtr; i++) {
+        if (!m_AcState.IsValidEntity(m_AcState.m_EntityListPtr->Entities[i]))
             continue;
 
-        entity = m_AcState->m_EntityListPtr->Entities[i];
-        if (!m_AcState->IsEnemy(entity) || !IsVisible(entity))
+        entity = m_AcState.m_EntityListPtr->Entities[i];
+        if (!m_AcState.IsEnemy(entity) || !IsVisible(entity))
             continue;
 
-        distance = m_AcState->m_LocalPlayerPtr->OriginCoords.Distance(entity->OriginCoords);
+        distance = m_AcState.m_LocalPlayerPtr->OriginCoords.Distance(entity->OriginCoords);
         if (distance < shortestDistance || shortestDistance == 0) {
             shortestDistance = distance;
             closestEntity = entity;
@@ -41,7 +43,7 @@ AcEntity* Aimbot::GetNextTarget() {
 }
 
 bool Aimbot::IsVisible(AcEntity* target) {
-    AcEntity* localPlayer = m_AcState->m_LocalPlayerPtr;
+    AcEntity* localPlayer = m_AcState.m_LocalPlayerPtr;
 
     ac_structs::vec from = ac_structs::vec(localPlayer->OriginCoords.x, localPlayer->OriginCoords.y, localPlayer->OriginCoords.z);
     ac_structs::vec to = ac_structs::vec(target->OriginCoords.x, target->OriginCoords.y, target->OriginCoords.z);
@@ -53,15 +55,15 @@ bool Aimbot::IsVisible(AcEntity* target) {
 
 void Aimbot::AimAtEntity(AcEntity* entity) {
     geometry::Vector3 angle = ComputeAimAngle(entity);
-    m_AcState->m_LocalPlayerPtr->Angle.x = angle.x;
-    m_AcState->m_LocalPlayerPtr->Angle.y = angle.y;
+    m_AcState.m_LocalPlayerPtr->Angle.x = angle.x;
+    m_AcState.m_LocalPlayerPtr->Angle.y = angle.y;
 }
 
 
 geometry::Vector3 Aimbot::ComputeAimAngle(AcEntity* target) {
     geometry::Vector3 targetCoords = target->HeadCoords.x >= 0 ? target->HeadCoords : target->OriginCoords;
 
-    targetCoords = m_AcState->m_LocalPlayerPtr->OriginCoords - targetCoords;
+    targetCoords = m_AcState.m_LocalPlayerPtr->OriginCoords - targetCoords;
 
     geometry::Vector3 viewAngle;
     // TODO is this magic number a smoothing factor ?

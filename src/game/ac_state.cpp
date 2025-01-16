@@ -4,21 +4,28 @@ AcState::AcState() {
     // TODO understand this cast
     m_ModuleBaseAddress = reinterpret_cast<uintptr_t>(GetModuleHandle("ac_client.exe"));
 
-    if (!m_ModuleBaseAddress) {
+    if (!m_ModuleBaseAddress)
 		Logger::Error() << "[ac_state] failed to resolve module base address" << Logger::Endl;
-    }
-    else {
-        Logger::Debug() << "[ac_state] module base address: 0x" << m_ModuleBaseAddress << Logger::Endl;
-    }
 
     MODULEINFO moduleInfo = {};
     GetModuleInformation(GetCurrentProcess(), (HMODULE)m_ModuleBaseAddress, &moduleInfo, sizeof(moduleInfo));
     if (!moduleInfo.SizeOfImage) {
         Logger::Error() << "[ac_state] failed to resolve module size" << Logger::Endl;
+        return;
     }
-    else {
-		m_ModuleSize = moduleInfo.SizeOfImage;
-    }
+    
+    m_ModuleSize = moduleInfo.SizeOfImage;
+}
+
+AcState::~AcState() {
+    m_ModuleBaseAddress = NULL;
+    m_ModuleSize = 0;
+
+    m_NoRecoilFnPtr = NULL;
+    m_DecreaseAmmoFnPtr = NULL;
+    m_DecreaseHealthFnPtr = NULL;
+    m_IntersectClosestFnPtr = NULL;
+    m_IntersectGeometryFnPtr = NULL;
 }
 
 void AcState::Initialize() {
@@ -27,25 +34,25 @@ void AcState::Initialize() {
 
 bool AcState::ScanForSignatures() {
     Signature_t signatures[] = {
-        // sigNoRecoil
+        // recoil function address
         Signature_t { "83 EC ? 53 55 8B 6C ? ? 56 57 8B F9" },
-        // sigDecreaseAmmo
+        // decrease ammo function address
         Signature_t { "FF 08 8D 44" },
-        // sigDecreaseHealth
+        // `dodamage()` function address
         Signature_t { "2B F1 29 73", 2 },
-        // sigIntersectClosest
+        // `intersectClosest()` function address
         Signature_t { "83 EC ? A1 ? ? ? ? ? ? ? ? 24" },
-        // sigIntersectGeometry
+        // `intersectGeometry()` function address
         Signature_t { "55 8B EC 83 E4 ? 81 EC ? ? ? ? 53 8B DA 8B D1" },
-        // sigGameMode
+        // game mode pointer address
         Signature_t { "89 15 ? ? ? ? 53", 2 },
-        // sigMatrix
+        // view matrix pointer address
         Signature_t { "F3 0F ? ? ? ? ? ? F3 0F ? ? 0F 28 ? 0F C6 C3 ? F3 0F ? ? ? ? ? ? F3 0F ? ? F3 0F ? ? F2 0F ? ? ? ? ? ? 0F 28 ? 0F 54 ? ? ? ? ? 0F 5A ? 66 0F ? ? 77 ? F3 0F", 4 },
-        // sigLocalPlayer
+        // local player pointer address
         Signature_t { "8B 0D ? ? ? ? 56 57 8B 3D", 2 },
-        // sigEntityList
+        // entity list pointer address
         Signature_t { "A1 ? ? ? ? ? ? ? ? F6 0F 84 5F", 1 },
-        // sigPlayerCount
+        // player count pointer address
         Signature_t { "8B 0D ? ? ? ? 46 3B ? 7C ? 8B 35", 2 },
     };
 
@@ -62,54 +69,36 @@ bool AcState::ScanForSignatures() {
         return false;
     }
 
-    Logger::Info() << "[ac_state] found NoRecoilFn signature at 0x" << (void*)signatures[0].address << Logger::Endl;
+    Logger::Debug() << "[ac_state] all signatures found" << Logger::Endl;
+
     m_NoRecoilFnPtr = signatures[0].address;
 
-    Logger::Info() << "[ac_state] found DecreaseAmmoFn signature at 0x" << (void*)signatures[1].address << Logger::Endl;
     m_DecreaseAmmoFnPtr = signatures[1].address;
 
-    Logger::Info() << "[ac_state] found DecreaseHealthFn signature at 0x" << (void*)signatures[2].address << Logger::Endl;
     m_DecreaseHealthFnPtr = signatures[2].address;
 
-    Logger::Info() << "[ac_state] found IntersectClosestFn signature at 0x" << (void*)signatures[3].address << Logger::Endl;
     m_IntersectClosestFnPtr = signatures[3].address;
 
-    Logger::Info() << "[ac_state] found IntersectGeometryFn signature at 0x" << (void*)signatures[4].address << Logger::Endl;
     m_IntersectGeometryFnPtr = signatures[4].address;
 
-    Logger::Info() << "[ac_state] found GameModeFn signature at 0x" << (void*)signatures[5].address << Logger::Endl;
-    // TODO employ `reinterpret_cast` instead of C-style casts ?
-    m_GameModePtr = (int*)(*(uintptr_t*)signatures[5].address);
+    // gpt said `reinterpret_cast` is explicit and type safe, hence being used over C-style casts, may be unnecessary ?
+    m_GameModePtr = reinterpret_cast<int*>(*reinterpret_cast<uintptr_t*>(signatures[5].address));
 
-    Logger::Info() << "[ac_state] found ViewMatrixFn signature at 0x" << (void*)signatures[6].address << Logger::Endl;
-    m_ViewMatrixPtr = (float*)(*(uintptr_t*)signatures[6].address);
+    m_ViewMatrixPtr = reinterpret_cast<float*>(*reinterpret_cast<uintptr_t*>(signatures[6].address));
 
-    Logger::Info() << "[ac_state] found LocalPlayerPtr signature at 0x" << (void*)signatures[7].address << Logger::Endl;
-    m_LocalPlayerPtr = *(AcEntity**)(*(uintptr_t*)signatures[7].address);
+    m_LocalPlayerPtr = *reinterpret_cast<AcEntity**>(*reinterpret_cast<uintptr_t*>(signatures[7].address));
 
-    Logger::Info() << "[ac_state] found EntityListPtr signature at 0x" << (void*)signatures[8].address << Logger::Endl;
-    m_EntityListPtr = *(AcEntityList**)(*(uintptr_t*)signatures[8].address);
+    m_EntityListPtr = *reinterpret_cast<AcEntityList**>(*reinterpret_cast<uintptr_t*>(signatures[8].address));
 
-    Logger::Info() << "[ac_state] found PlayerCountPtr signature at 0x" << (void*)signatures[9].address << Logger::Endl;
-    m_PlayerCountPtr = (int*)(*(uintptr_t*)signatures[9].address);
+    m_PlayerCountPtr = reinterpret_cast<int*>(*reinterpret_cast<uintptr_t*>(signatures[9].address));
+    
     return true;
 }
 
 void AcState::Destroy() {
-	// calls destructor
+	// `delete` calls `this`'s destructor
     delete this;
     Logger::Debug() << "[ac_state] destroyed" << Logger::Endl;
-}
-
-AcState::~AcState() {
-	m_ModuleBaseAddress = NULL;
-    m_ModuleSize = 0;
-
-    m_NoRecoilFnPtr = NULL;
-    m_DecreaseAmmoFnPtr = NULL;
-    m_DecreaseHealthFnPtr = NULL;
-    m_IntersectClosestFnPtr = NULL;
-    m_IntersectGeometryFnPtr = NULL;
 }
 
 bool AcState::IsTeamGame() {

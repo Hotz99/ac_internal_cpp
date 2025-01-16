@@ -25,31 +25,26 @@ void Menu::Render() {
     if (!m_IsOpen) {
         return;
     }
-    
-    // TODO should be `#define` in header ?
-    constexpr auto windowStartWidth = 256.f;
 
-    ImGui::SetNextWindowSize(ImVec2 { windowStartWidth, 0 }, ImGuiCond_Once);
+    ImGui::SetNextWindowSize(ImVec2 { MENU_WIDTH, 0 }, ImGuiCond_Once);
     ImGui::SetNextWindowPos(ImGui::GetIO().DisplaySize * 0.5f, ImGuiCond_Once, ImVec2 { 0.5f, 0.5f });
     ImGui::Begin("main menu", nullptr);
     {
-        ImGui::SeparatorText("Aimbot");
-        ImGui::Checkbox("Aimbot", &g_Settings.m_EnableAimbot);
+        ImGui::Checkbox("aimbot", &g_Settings.m_EnableAimbot);
 
-        ImGui::SeparatorText("Visuals");
-        ImGui::Checkbox("Master switch", &g_Settings.m_EnableESP);
-        ImGui::Checkbox("Player names", &g_Settings.m_PlayerNames);
-        ImGui::Checkbox("Player boxes", &g_Settings.m_PlayerBoxes);
-        ImGui::Checkbox("Player health bar", &g_Settings.m_PlayerHealthBar);
-        ImGui::Checkbox("Player snaplines", &g_Settings.m_PlayerSnaplines);
+        ImGui::SeparatorText("VISUALS");
+        ImGui::Checkbox("enable ESP", &g_Settings.m_EnableESP);
+        ImGui::Checkbox("player names", &g_Settings.m_PlayerNames);
+        ImGui::Checkbox("player boxes", &g_Settings.m_PlayerBoxes);
+        ImGui::Checkbox("player health bar", &g_Settings.m_PlayerHealthBar);
+        ImGui::Checkbox("player snaplines", &g_Settings.m_PlayerSnaplines);
 
-        ImGui::SeparatorText("Misc");
-        ImGui::Checkbox("Godmode", &g_Settings.m_EnableGodmode);
+        ImGui::SeparatorText("MISC");
+        ImGui::Checkbox("godmode", &g_Settings.m_EnableGodmode);
         
         ImGui::Separator();
 
-        if (ImGui::Button("Rescan Signatures")) {
-            Logger::Debug() << "[menu] rescan signatures button pressed" << Logger::Endl;
+        if (ImGui::Button("rescan signatures")) {
             // TODO is this nasty coupling ?
             AcState::GetInstance().ScanForSignatures();
         }

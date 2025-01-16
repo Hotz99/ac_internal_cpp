@@ -42,7 +42,7 @@ public:
     static void Bytes(byte* bytes, int length);
 
     static void SetActive(bool active);
-    static void Destroy();
+    static void Shutdown();
 
 protected:
     Logger();

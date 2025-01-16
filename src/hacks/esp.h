@@ -3,18 +3,28 @@
 #include "../game/ac_state.h"
 #include "../opengl/opengl.h"
 
-#define BOX_LINE_WIDTH 2.0f
-#define FONT_HEIGHT 15
-#define FONT_WIDTH 9
+constexpr float BOX_LINE_WIDTH = 1.5f;
+constexpr int FONT_HEIGHT = 15;
+constexpr int FONT_WIDTH = 9;
+/*constexpr float ENEMY_NAME_COLOR 0xFF0000FF
+constexpr float FRIENDLY_NAME_COLOR 0x00FF00FF
+constexpr float ENEMY_BOX_COLOR 0xFF0000FF
+constexpr float FRIENDLY_BOX_COLOR 0x00FF00FF*/
 
 struct Viewport {
     int x, y, width, height;
 };
 
+enum DrawType {
+	BOX,
+	NAME,
+	HEALTH_BAR,
+	SNAPLINE
+};
+
 class ESP {
 private:
-    // TODO why `virtual` ?
-    virtual void Render(AcEntity* entity, geometry::Vector2 screenCoordinates) {};
+    void Render(AcEntity* entity, geometry::Vector2 screenCoordinates) {};
 
     // TODO much repetition
     void DrawBox(AcEntity* entity, geometry::Vector2 screenCoordinates);
@@ -29,15 +39,14 @@ private:
     Viewport m_Viewport;
     opengl::Text::Font m_Font;
 
-    AcState* m_AcState;
+    AcState& m_AcState;
+
 public:
-    ESP() {
-        m_AcState = &AcState::GetInstance();
-    }
+    ESP() : m_AcState(AcState::GetInstance()) {}
 
     static ESP& GetInstance() {
-        static ESP instance;
-        return instance;
+        static ESP s_Instance;
+        return s_Instance;
     }
 
     void Render();

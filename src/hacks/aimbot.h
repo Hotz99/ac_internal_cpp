@@ -1,15 +1,14 @@
 #pragma once
 #include <windows.h>
-#include "./hack.h"
 #include "../game/ac_functions.h"
+#include "../game/ac_state.h"
 #include "../geometry/geometry.h"
 #include "../logger/logger.h"
 #include "./settings.h"
 
-// public inheritance: members of `Hack` maintain their access levels in `Aimbot`
-// as they were in `Hack`
-class Aimbot : public Hack {
+class Aimbot {
 private:
+    AcState& m_AcState;
     AcEntity* GetNextTarget();
 
     geometry::Vector3 ComputeAimAngle(AcEntity* entity);
@@ -18,9 +17,13 @@ private:
     bool IsVisible(AcEntity* entity);
 
 public:
+    Aimbot() 
+        : m_AcState(AcState::GetInstance())
+    {}
+
     static Aimbot& GetInstance() {
-		static Aimbot instance;
-		return instance;
+        static Aimbot s_Instance;
+		return s_Instance;
 	}
 
     void Work();

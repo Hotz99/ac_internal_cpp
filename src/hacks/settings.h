@@ -2,9 +2,8 @@
 
 struct Settings_t {
     bool m_EnableAimbot;
-    bool m_EnableTriggerbot;
-    bool m_EnableGodmode;
     bool m_EnableESP;
+    bool m_EnableGodmode;
 
     bool m_RescanSignatures;
 
@@ -14,4 +13,6 @@ struct Settings_t {
     bool m_PlayerSnaplines;
 };
 
+// `extern` declares a variable as existing without defining or allocating memory for it
+// tells the compiler this variable exists somewhere else (in a .cpp file)
 extern Settings_t g_Settings;

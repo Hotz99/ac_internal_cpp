@@ -43,10 +43,6 @@ void Logger::SetActive(bool active) {
     }
 }
 
-void Logger::Destroy() {
-    delete Logger::Instance;
-}
-
 void Logger::CreateIfNotExist() {
     if (!Logger::Instance) {
         Logger::Instance = new Logger();

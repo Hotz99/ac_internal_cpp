@@ -9,7 +9,7 @@ void opengl::Text::Font::Build(int height) {
     SelectObject(hdc, hOldFont);
     DeleteObject(hFont);
 
-    bBuilt = true;
+    IsBuilt = true;
 }
 
 void opengl::Text::Font::Print(float x, float y, const unsigned char color[3], const char* format, ...) {

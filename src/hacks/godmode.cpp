@@ -4,7 +4,9 @@
 // .text:0041C223 sub[ebx + 4], esi		- 29 73 04 
 // .text:0041C226 mov     eax, esi		- 8B C6
 
-
+// `DWORD` is a `windows.h` typedef for `unsigned long`
+// we use `DWORD` instead of `uintptr_t` bc the value below 
+// will be used in inline assembly, compiled by MSVC
 DWORD localPlayerState;
 DWORD returnAddr;
 
@@ -36,8 +38,30 @@ Godmode::Godmode() {
 	}
 }
 
-Godmode::~Godmode() {
-    MH_RemoveHook(reinterpret_cast<LPVOID>(m_AcState->m_DecreaseHealthFnPtr));
+void Godmode::Enable() {
+    localPlayerState = reinterpret_cast<DWORD>(&m_AcState->m_LocalPlayerPtr->EntityState);
+
+    if (MH_EnableHook(reinterpret_cast<LPVOID>(m_AcState->m_DecreaseHealthFnPtr)) != MH_OK) {
+        Logger::Error() << "[godmode] failed to enable dodamage() hook" << Logger::Endl;
+        return;
+    }
+    else {
+        Logger::Info() << "[godmode] enabled dodamage() hook" << Logger::Endl;
+    }
+
+    m_IsEnabled = true;
+}
+
+void Godmode::Disable() {
+    if (MH_DisableHook(reinterpret_cast<LPVOID>(m_AcState->m_DecreaseHealthFnPtr)) != MH_OK) {
+        Logger::Error() << "[godmode] failed to disable dodamage() hook" << Logger::Endl;
+        return;
+    }
+    else {
+        Logger::Info() << "[godmode] disabled dodamage() hook" << Logger::Endl;
+    }
+
+    m_IsEnabled = false;
 }
 
 void Godmode::Work() {
@@ -50,28 +74,6 @@ void Godmode::Work() {
     }
 }
 
-void Godmode::Enable() {
-    localPlayerState = reinterpret_cast<DWORD>(&m_AcState->m_LocalPlayerPtr->EntityState);
-
-    if (MH_EnableHook(reinterpret_cast<LPVOID>(m_AcState->m_DecreaseHealthFnPtr)) != MH_OK) {
-		Logger::Error() << "[godmode] failed to enable dodamage() hook" << Logger::Endl;
-		return;
-    }
-    else {
-        Logger::Info() << "[godmode] enabled dodamage() hook" << Logger::Endl;
-    }
-
-    m_IsEnabled = true;
-}
-
-void Godmode::Disable() {
-    if (MH_DisableHook(reinterpret_cast<LPVOID>(m_AcState->m_DecreaseHealthFnPtr)) != MH_OK) {
-		Logger::Error() << "[godmode] failed to disable dodamage() hook" << Logger::Endl;
-		return;
-    }
-    else {
-		Logger::Info() << "[godmode] disabled dodamage() hook" << Logger::Endl;
-	}
-
-	m_IsEnabled = false;
+void Godmode::Shutdown() {
+    MH_RemoveHook(reinterpret_cast<LPVOID>(m_AcState->m_DecreaseHealthFnPtr));
 }

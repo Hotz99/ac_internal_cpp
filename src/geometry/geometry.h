@@ -2,7 +2,7 @@
 #pragma once
 #include <algorithm>
 
-#define M_RADIAN 57.2957795f
+constexpr float M_RADIAN = 57.2957795f;
 
 namespace geometry {
     struct Vector2 {

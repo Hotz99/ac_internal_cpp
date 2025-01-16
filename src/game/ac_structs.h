@@ -1,6 +1,8 @@
 #pragma once
 #include "../geometry/geometry.h"
 
+// structs extracted from AssaultCube source code
+
 namespace ac_structs {
     enum GameTypes {
         TEAMDEATHMATCH = 0,
@@ -28,10 +30,10 @@ namespace ac_structs {
         NUM
     };
 
-#define WEAPON_BELOW_EYES .2f;
+constexpr float WEAPON_BELOW_EYES = 0.2f;
 
-    // vector struct from assualtcube
-#define RAD   (0.01745329252f) /* PI / 180 */
+// one radian = 180/PI degrees
+#define RAD   (0.01745329252f)
     struct vec {
         union {
             struct { float x, y, z; };

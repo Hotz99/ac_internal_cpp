@@ -8,6 +8,8 @@
 #include "../game/ac_state.h"
 #include "../hacks/godmode.h"
 
+#define MENU_WIDTH 200.0f
+
 class Menu {
 private:
     bool m_IsOpen;

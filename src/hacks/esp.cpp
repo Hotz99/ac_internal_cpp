@@ -4,23 +4,23 @@ void ESP::Render() {
     if (!g_Settings.m_EnableESP)
         return;
         
-    if (!m_AcState->m_EntityListPtr || !m_AcState->m_EntityListPtr->Entities) {
-        Logger::Warning() << "[esp] m_AcState->EntityList is unavailable" << Logger::Endl;
+    if (!m_AcState.m_EntityListPtr || !m_AcState.m_EntityListPtr->Entities) {
+        Logger::Error() << "[esp] m_AcState.EntityList is unavailable, try rescanning signatures" << Logger::Endl;        
         return;
     }
 
     glGetIntegerv(GL_VIEWPORT, reinterpret_cast<GLint*>(&m_Viewport));
 
-    for (int i = 0; i < *m_AcState->m_PlayerCountPtr; i++) {
-        AcEntity* entity = m_AcState->m_EntityListPtr->Entities[i];
+    for (int i = 0; i < *m_AcState.m_PlayerCountPtr; i++) {
+        AcEntity* entity = m_AcState.m_EntityListPtr->Entities[i];
         
-        if (!m_AcState->IsValidEntity(entity))
+        if (!m_AcState.IsValidEntity(entity))
             continue;
 
         geometry::Vector2 screenCoords;
 
         // if entity is not visible
-        if (!geometry::WorldToScreen(entity->OriginCoords, screenCoords, m_AcState->m_ViewMatrixPtr, m_Viewport.width, m_Viewport.height))
+        if (!geometry::WorldToScreen(entity->OriginCoords, screenCoords, m_AcState.m_ViewMatrixPtr, m_Viewport.width, m_Viewport.height))
             continue;
 
         if (g_Settings.m_PlayerBoxes) 
@@ -38,18 +38,12 @@ void ESP::DrawBox(AcEntity* entity, geometry::Vector2 screenCoords) {
     // TODO can we reuse the same `Rect` instance for all entities ?
     geometry::Rect rect = geometry::Rect();
     GetScaledEntityBox(entity, screenCoords, &rect);
-
-    Logger::Debug() << "[esp] " << entity->Name << " : "  << rect.width << "x" << rect.height << " at " << rect.x << ", " << rect.y << Logger::Endl;
-
-
     opengl::Draw::Outline(rect, BOX_LINE_WIDTH, GetEntityColor(entity));
 }
 
 void ESP::DrawName(AcEntity* entity, geometry::Vector2 screenCoords) {
-    if (!m_Font.bBuilt) {
+    if (!m_Font.IsBuilt)
         m_Font.Build(FONT_HEIGHT);
-        Logger::Debug() << "[esp] built font" << Logger::Endl;
-    }
 
     geometry::Rect rect = geometry::Rect();
     GetScaledEntityBox(entity, screenCoords, &rect);
@@ -93,11 +87,11 @@ void ESP::DrawSnapline(AcEntity* entity, geometry::Vector2 screenCoords) {
 }
 
 const GLubyte* ESP::GetEntityColor(AcEntity* entity) {
-    return (m_AcState->IsEnemy(entity)) ? opengl::Color::RED : opengl::Color::BLUE;
+    return (m_AcState.IsEnemy(entity)) ? opengl::Color::RED : opengl::Color::BLUE;
 }
 
 float ESP::GetDistanceTo(AcEntity* entity) {
-    return m_AcState->m_LocalPlayerPtr->OriginCoords.Distance(entity->OriginCoords);
+    return m_AcState.m_LocalPlayerPtr->OriginCoords.Distance(entity->OriginCoords);
 }
 
 void ESP::GetScaledEntityBox(AcEntity* entity, geometry::Vector2 screenCoords, geometry::Rect* rect) {
@@ -108,8 +102,8 @@ void ESP::GetScaledEntityBox(AcEntity* entity, geometry::Vector2 screenCoords, g
     feetWorldCoords.z -= entity->EyeHeight;
 
     geometry::Point headScreenCoords, feetScreenCoords;
-    geometry::WorldToScreen(headWorldCoords, headScreenCoords, m_AcState->m_ViewMatrixPtr, m_Viewport.width, m_Viewport.height);
-    geometry::WorldToScreen(feetWorldCoords, feetScreenCoords, m_AcState->m_ViewMatrixPtr, m_Viewport.width, m_Viewport.height);
+    geometry::WorldToScreen(headWorldCoords, headScreenCoords, m_AcState.m_ViewMatrixPtr, m_Viewport.width, m_Viewport.height);
+    geometry::WorldToScreen(feetWorldCoords, feetScreenCoords, m_AcState.m_ViewMatrixPtr, m_Viewport.width, m_Viewport.height);
 
     float squaredDistance = headScreenCoords.Distance(feetScreenCoords) * 1.2f;
 

@@ -17,7 +17,7 @@ namespace opengl {
             float CenterText(float x, float width, float textWidth);
             float EndText(float x, float width, float textWidth);
 
-            bool bBuilt = false;
+            bool IsBuilt = false;
             unsigned int base;
             HDC hdc = nullptr;
             int height;
