@@ -1,11 +1,11 @@
-# Internal Menu for Assault Cube v1.3.0.2
+# Internal Mod Menu for Assault Cube v1.3.0.2
 
 ## What ?
-A showcase of memory manipulation and overlay rendering techniques by means of function hooking, applied to an executing target process. It includes features such as:
-- **ESP (Extra Sensory Perception)**: Highlighting entities, health bars, and other visual aids.
-- **Aimbot**: Programatically aiming at targets based on physical proximity.
+A showcase of memory manipulation and graphical overlay rendering techniques by means of function hooking, applied to an executing target process. It includes features such as:
+- **ESP**: Player model bounding boxes, health bars, names and snaplines.
+- **Aimbot**: Programatically aiming at targets based on their proximity in the game world.
 - **Godmode**: Mutating game functions to nullify damage.
-- **Custom Overlay**: Rendering visual elements onto the game window using OpenGL.
+- **ImGui Menu**: Interfacing with the program features.
 
 The general process entails loading a (compiled) shared library ("dynamic-link library", in Windows) into a target process's memory space, enabling direct target memory access from our "injected" binary.
 
@@ -13,7 +13,8 @@ The general process entails loading a (compiled) shared library ("dynamic-link l
 To explore and understand:
 1. **Memory manipulation**: Reading and writing to arbitrary memory addresses to alter program behavior.
 2. **Function hooking**: Intercepting and modifying the execution flow of the target program.
-3. **Overlay rendering**: Drawing arbitrary visual elements onto game frames using OpenGL.
+3. **Overlay rendering**: Drawing arbitrary visual elements onto frames of the graphics pipeline using OpenGL.
+4. **Signature scanning**: Locating arbitrary structures (functions, pointers, etc.) in the target process's binary by matching their byte patterns.
 
 ## Disclaimer
 This project is strictly for **educational purposes only**. We do not condone cheating in competitive games. Any use of this code or concepts in may violate terms of service agreements and/or local laws.
