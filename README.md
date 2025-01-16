@@ -1,7 +1,7 @@
 # Internal Mod Menu for Assault Cube v1.3.0.2
 
 <p align="center">
-  <img src="showcase.png" alt="showcase" width="400"/>
+  <img src="showcase.png" alt="showcase"/>
 </p>
 
 ## What ?
